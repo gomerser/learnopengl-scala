@@ -57,7 +57,7 @@ val SCR_HEIGHT = 600
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val ourShader = Shader("5.1.transform.vs", "5.1.transform.fs")
+  val ourShader = Shader("1.getting_started/5.1.transform.vs", "1.getting_started/5.1.transform.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

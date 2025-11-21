@@ -56,7 +56,7 @@ val SCR_HEIGHT = 600
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val ourShader = Shader("4.3.texture.vs", "4.3.texture.fs")
+  val ourShader = Shader("1.getting_started/4.3.texture.vs", "1.getting_started/4.3.texture.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

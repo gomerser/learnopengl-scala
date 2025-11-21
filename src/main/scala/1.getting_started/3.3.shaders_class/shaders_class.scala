@@ -49,8 +49,8 @@ val SCR_HEIGHT = 600
   // build and compile our shader program
   // ------------------------------------
   val ourShader = Shader(
-    "3.3.shader.vs",
-    "3.3.shader.fs"
+    "1.getting_started/3.3.shader.vs",
+    "1.getting_started/3.3.shader.fs"
   ) // you can name your shader files however you like
 
   // set up vertex data (and buffer(s)) and configure vertex attributes

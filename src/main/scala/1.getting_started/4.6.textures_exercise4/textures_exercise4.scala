@@ -59,7 +59,7 @@ var mixValue = 0.2f
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val ourShader = Shader("4.5.texture.vs", "4.5.texture.fs")
+  val ourShader = Shader("1.getting_started/4.5.texture.vs", "1.getting_started/4.5.texture.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

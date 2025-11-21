@@ -81,7 +81,7 @@ var fov: Float = 45.0f
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val ourShader = Shader("7.3.camera.vs", "7.3.camera.fs")
+  val ourShader = Shader("1.getting_started/7.3.camera.vs", "1.getting_started/7.3.camera.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

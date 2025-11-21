@@ -62,7 +62,7 @@ val SCR_HEIGHT = 600
   // build and compile our shader zprogram
   // ------------------------------------
   val ourShader =
-    Shader("6.2.coordinate_systems.vs", "6.2.coordinate_systems.fs")
+    Shader("1.getting_started/6.2.coordinate_systems.vs", "1.getting_started/6.2.coordinate_systems.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

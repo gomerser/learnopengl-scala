@@ -61,7 +61,7 @@ val SCR_HEIGHT = 600
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val ourShader = Shader("7.1.camera.vs", "7.1.camera.fs")
+  val ourShader = Shader("1.getting_started/7.1.camera.vs", "1.getting_started/7.1.camera.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

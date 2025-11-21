@@ -1,4 +1,4 @@
-package learnopengl_1
+package learnopengl_2_2_1
 
 import learnopengl.Camera
 import learnopengl.CameraMovement.*
@@ -76,8 +76,8 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val lightingShader = Shader("2.lighting/1.colors.vs", "2.lighting/1.colors.fs")
-  val lightCubeShader = Shader("2.lighting/1.light_cube.vs", "2.lighting/1.light_cube.fs")
+  val lightingShader = Shader("1.colors.vs", "1.colors.fs")
+  val lightCubeShader = Shader("1.light_cube.vs", "1.light_cube.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
