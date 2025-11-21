@@ -16,7 +16,6 @@ import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL31.*
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage.*
-import org.lwjgl.stb.STBImage.*
 import org.lwjgl.system.Configuration
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -56,7 +55,10 @@ val SCR_HEIGHT = 600
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val ourShader = Shader("1.getting_started/4.4.texture.vs", "1.getting_started/4.4.texture.fs")
+  val ourShader = Shader(
+    "1.getting_started/4.4.texture.vs",
+    "1.getting_started/4.4.texture.fs"
+  )
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

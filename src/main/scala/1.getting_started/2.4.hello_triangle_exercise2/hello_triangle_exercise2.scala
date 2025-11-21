@@ -43,7 +43,7 @@ val fragmentShaderSource =
   if (!glfwInit()) throw new IllegalStateException("Unable to initialize GLFW")
   // enable error callback
   GLFWErrorCallback.createPrint(System.err).set()
-  
+
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3)
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3)
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
@@ -149,7 +149,7 @@ val fragmentShaderSource =
   )
   glEnableVertexAttribArray(0)
   // glBindVertexArray(0) // no need to unbind at all as we directly bind a different VAO the next few lines
-  
+
   // second triangle setup
   // ---------------------
   glBindVertexArray(VAOs(1)) // note that we bind to a different VAO now

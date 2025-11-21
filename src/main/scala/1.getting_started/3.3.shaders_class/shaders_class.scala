@@ -1,5 +1,6 @@
 package learnopengl_3_3
 
+import learnopengl.shader_s.Shader
 import org.joml.Matrix4f
 import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
@@ -14,7 +15,6 @@ import org.lwjgl.opengl.GL33.*
 import org.lwjgl.system.Configuration
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
-import learnopengl.shader_s.Shader
 
 // settings
 val SCR_WIDTH = 800
