@@ -17,7 +17,6 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL31.*
 import org.lwjgl.opengl.GL33.*
-import org.lwjgl.stb.STBImage.*
 import org.lwjgl.system.Configuration
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -76,22 +75,35 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val lightingShader = Shader("1.colors.vs", "1.colors.fs")
-  val lightCubeShader = Shader("1.light_cube.vs", "1.light_cube.fs")
+  val lightingShader = Shader(
+    "2.lighting/2.1.basic_lighting.vs",
+    "2.lighting/2.1.basic_lighting.fs"
+  )
+  val lightCubeShader =
+    Shader("2.lighting/2.1.light_cube.vs", "2.lighting/2.1.light_cube.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   val vertices: Array[Float] = Array(
-    -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-    -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f,
-    -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-    0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+    -1.0f, 0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.5f, 0.5f, -0.5f, 0.0f, 0.0f,
+    -1.0f, -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, -0.5f, -0.5f, -0.5f, 0.0f,
+    0.0f, -1.0f, -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.5f, -0.5f, 0.5f, 0.0f,
+    0.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.0f,
+    0.0f, 1.0f, -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, -0.5f, -0.5f, 0.5f, 0.0f,
+    0.0f, 1.0f, -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, -0.5f, 0.5f, -0.5f, -1.0f,
+    0.0f, 0.0f, -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, -0.5f, -0.5f, -0.5f,
+    -1.0f, 0.0f, 0.0f, -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, -0.5f, 0.5f, 0.5f,
+    -1.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f, -0.5f,
+    1.0f, 0.0f, 0.0f, 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.5f, -0.5f, -0.5f,
+    1.0f, 0.0f, 0.0f, 0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f,
+    1.0f, 0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.5f, -0.5f,
+    -0.5f, 0.0f, -1.0f, 0.0f, 0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.5f, -0.5f,
+    0.5f, 0.0f, -1.0f, 0.0f, -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, -0.5f,
+    -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.5f,
+    0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.5f,
+    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, -0.5f,
+    0.5f, -0.5f, 0.0f, 1.0f, 0.0f
   )
 
   // first, configure the cube's VAO (and VBO)
@@ -107,8 +119,19 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
   glBindVertexArray(cubeVAO)
 
   // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * java.lang.Float.BYTES, 0L)
+  glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * java.lang.Float.BYTES, 0L)
   glEnableVertexAttribArray(0)
+
+  // normal attribute
+  glVertexAttribPointer(
+    1,
+    3,
+    GL_FLOAT,
+    false,
+    6 * java.lang.Float.BYTES,
+    3 * java.lang.Float.BYTES
+  )
+  glEnableVertexAttribArray(1)
 
   // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
   val lightCubeVAO = glGenVertexArrays()
@@ -117,7 +140,8 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
   // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
   glBindBuffer(GL_ARRAY_BUFFER, VBO)
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * java.lang.Float.BYTES, 0L)
+  // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+  glVertexAttribPointer(0, 3, GL_FLOAT, false, 6 * java.lang.Float.BYTES, 0L)
   glEnableVertexAttribArray(0)
 
   // render loop
@@ -143,6 +167,7 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
     lightingShader.use()
     lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f)
     lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f)
+    lightingShader.setVec3("lightPos", lightPos)
 
     // view/projection transformations
     val projection = new Matrix4f()
@@ -156,6 +181,7 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
     lightingShader.setMat4("projection", projection);
     lightingShader.setMat4("view", view)
 
+    // world transformation
     var model = new Matrix4f()
     lightingShader.setMat4("model", model)
 
@@ -169,7 +195,7 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
     lightCubeShader.setMat4("view", view)
     model = new Matrix4f()
       .translate(lightPos)
-      .scale(Vector3f(0.2f)) // a smaller cube
+      .scale(Vector3f(0.2, 0.2, 0.2)) // a smaller cube
     lightCubeShader.setMat4("model", model)
 
     glBindVertexArray(lightCubeVAO);
@@ -197,7 +223,6 @@ def processInput(window: Long): Unit = {
   if glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS then
     glfwSetWindowShouldClose(window, true)
 
-  val cameraSpeed = (2.5f * deltaTime)
   if glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS then
     camera.processKeyboard(FORWARD, deltaTime)
   if glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS then

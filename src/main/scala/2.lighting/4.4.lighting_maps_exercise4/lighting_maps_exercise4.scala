@@ -1,4 +1,4 @@
-package learnopengl_1
+package learnopengl_2_4_4
 
 import learnopengl.Camera
 import learnopengl.CameraMovement.*
@@ -17,6 +17,7 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL31.*
 import org.lwjgl.opengl.GL33.*
+import org.lwjgl.stb.STBImage.*
 import org.lwjgl.system.Configuration
 import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
@@ -75,22 +76,42 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
 
   // build and compile our shader zprogram
   // ------------------------------------
-  val lightingShader = Shader("2.lighting/1.colors.vs", "2.lighting/1.colors.fs")
-  val lightCubeShader = Shader("2.lighting/1.light_cube.vs", "2.lighting/1.light_cube.fs")
+  val lightingShader = Shader(
+    "2.lighting/4.4.lighting_maps.vs",
+    "2.lighting/4.4.lighting_maps.fs"
+  )
+  val lightCubeShader =
+    Shader("2.lighting/4.4.light_cube.vs", "2.lighting/4.4.light_cube.fs")
 
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   val vertices: Array[Float] = Array(
-    -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f,
-    -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f,
-    -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, 0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f,
-    0.5f, -0.5f, 0.5f, 0.5f, -0.5f, 0.5f, -0.5f
+    // positions          // normals           // texture coords
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.5f, -0.5f, -0.5f,
+    0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f,
+    1.0f, 0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, -0.5f, 0.5f, -0.5f,
+    0.0f, 0.0f, -1.0f, 0.0f, 1.0f, -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f,
+    0.0f, -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.5f, -0.5f, 0.5f,
+    0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f,
+    1.0f, 0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, -0.5f, 0.5f, 0.5f,
+    0.0f, 0.0f, 1.0f, 0.0f, 1.0f, -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, -0.5f, 0.5f, -0.5f,
+    -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f,
+    1.0f, -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, -0.5f, -0.5f,
+    0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.5f, 0.5f,
+    -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.5f, -0.5f,
+    0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.5f, -0.5f,
+    -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+    1.0f, 0.0f, 0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, -0.5f, -0.5f,
+    0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+    0.0f, 1.0f, -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.5f, 0.5f,
+    -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+    1.0f, 0.0f, 0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, -0.5f, 0.5f,
+    0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f
   )
 
   // first, configure the cube's VAO (and VBO)
@@ -106,8 +127,29 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
   glBindVertexArray(cubeVAO)
 
   // position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * java.lang.Float.BYTES, 0L)
+  glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * java.lang.Float.BYTES, 0L)
   glEnableVertexAttribArray(0)
+
+  // normal attribute
+  glVertexAttribPointer(
+    1,
+    3,
+    GL_FLOAT,
+    false,
+    8 * java.lang.Float.BYTES,
+    3 * java.lang.Float.BYTES
+  )
+  glEnableVertexAttribArray(1)
+
+  glVertexAttribPointer(
+    2,
+    2,
+    GL_FLOAT,
+    false,
+    8 * java.lang.Float.BYTES,
+    6 * java.lang.Float.BYTES
+  )
+  glEnableVertexAttribArray(2)
 
   // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
   val lightCubeVAO = glGenVertexArrays()
@@ -116,8 +158,21 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
   // we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
   glBindBuffer(GL_ARRAY_BUFFER, VBO)
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * java.lang.Float.BYTES, 0L)
+  // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+  glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * java.lang.Float.BYTES, 0L)
   glEnableVertexAttribArray(0)
+
+  // load textures (we now use a utility function to keep the code more organized)
+  // -----------------------------------------------------------------------------
+  val diffuseMap = loadTexture("/textures/container2.png")
+  val specularMap = loadTexture("/textures/container2_specular.png")
+  val emissionMap = loadTexture("/textures/matrix.jpg")
+  // shader configuration
+  // --------------------
+  lightingShader.use()
+  lightingShader.setInt("material.diffuse", 0)
+  lightingShader.setInt("material.specular", 1)
+  lightingShader.setInt("material.emission", 2)
 
   // render loop
   // -----------
@@ -140,8 +195,16 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
 
     // be sure to activate shader when setting uniforms/drawing objects
     lightingShader.use()
-    lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f)
-    lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f)
+    lightingShader.setVec3("light.position", lightPos)
+    lightingShader.setVec3("viewPos", camera.position)
+
+    // light properties
+    lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f)
+    lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f)
+    lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f)
+
+    // material properties
+    lightingShader.setFloat("material.shininess", 64.0f)
 
     // view/projection transformations
     val projection = new Matrix4f()
@@ -155,8 +218,19 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
     lightingShader.setMat4("projection", projection);
     lightingShader.setMat4("view", view)
 
+    // world transformation
     var model = new Matrix4f()
     lightingShader.setMat4("model", model)
+
+    // bind diffuse map
+    glActiveTexture(GL_TEXTURE0)
+    glBindTexture(GL_TEXTURE_2D, diffuseMap)
+    // bind specular map
+    glActiveTexture(GL_TEXTURE1)
+    glBindTexture(GL_TEXTURE_2D, specularMap)
+    // bind emission map
+    glActiveTexture(GL_TEXTURE2)
+    glBindTexture(GL_TEXTURE_2D, emissionMap)
 
     // render the cube
     glBindVertexArray(cubeVAO)
@@ -168,7 +242,7 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
     lightCubeShader.setMat4("view", view)
     model = new Matrix4f()
       .translate(lightPos)
-      .scale(Vector3f(0.2f, 0.2f, 0.2f)) // a smaller cube
+      .scale(Vector3f(0.2, 0.2, 0.2)) // a smaller cube
     lightCubeShader.setMat4("model", model)
 
     glBindVertexArray(lightCubeVAO);
@@ -239,6 +313,56 @@ def mouse_callback(window: Long, xposIn: Double, yposIn: Double): Unit = {
 // ----------------------------------------------------------------------
 def scroll_callback(window: Long, xoffset: Double, yoffset: Double): Unit = {
   camera.processMouseScroll(yoffset.toFloat)
+}
+
+// utility function for loading a 2D texture from file
+// ---------------------------------------------------
+def loadTexture(path: String): Int = {
+  val textureID = glGenTextures()
+
+  usingStack { stack =>
+    val w = stack.mallocInt(1)
+    val h = stack.mallocInt(1)
+    val nrComponents = stack.mallocInt(1)
+
+    val imgBytes = loadResourceAsTexture(path)
+    val data = stbi_load_from_memory(imgBytes, w, h, nrComponents, 0)
+    if (data == null)
+      throw new RuntimeException("Failed to load texture: " + path)
+
+    val format = nrComponents.get() match {
+      case 1 => GL_RED
+      case 4 => GL_RGBA
+      case 3 => GL_RGB
+    }
+
+    glBindTexture(GL_TEXTURE_2D, textureID)
+    glTexImage2D(
+      GL_TEXTURE_2D,
+      0,
+      format,
+      w.get(),
+      h.get(),
+      0,
+      format,
+      GL_UNSIGNED_BYTE,
+      data
+    )
+    glGenerateMipmap(GL_TEXTURE_2D)
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    glTexParameteri(
+      GL_TEXTURE_2D,
+      GL_TEXTURE_MIN_FILTER,
+      GL_LINEAR_MIPMAP_LINEAR
+    )
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+    stbi_image_free(data)
+  }
+
+  textureID
 }
 
 def usingStack[A](f: MemoryStack => A): A =
