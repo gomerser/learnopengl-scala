@@ -74,7 +74,7 @@ var lastFrame: Float = 0.0f
   // -----------------------------
   glEnable(GL_DEPTH_TEST)
   glDepthFunc(
-    GL_ALWAYS
+    GL_LESS //GL_ALWAYS
   ) // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
 
   // build and compile shaders
@@ -200,7 +200,10 @@ var lastFrame: Float = 0.0f
     glBindVertexArray(cubeVAO)
     glActiveTexture(GL_TEXTURE0)
     glBindTexture(GL_TEXTURE_2D, cubeTexture)
-    val model = new Matrix4f().translate(-1.0f, 0.0f, -1.0f)
+    var model = new Matrix4f().translate(-1.0f, 0.0f, -1.0f)
+    shader.setMat4("model", model)
+    glDrawArrays(GL_TRIANGLES, 0, 36)
+    model = new Matrix4f().translate(2.0f, 0.0f, 0.0f)
     shader.setMat4("model", model)
     glDrawArrays(GL_TRIANGLES, 0, 36)
     // floor

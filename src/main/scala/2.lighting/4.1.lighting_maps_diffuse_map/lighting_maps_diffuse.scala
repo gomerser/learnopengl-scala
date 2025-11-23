@@ -67,6 +67,9 @@ val lightPos = Vector3f(1.2f, 1.0f, 2.0f)
   glfwSetCursorPosCallback(window, mouse_callback)
   glfwSetScrollCallback(window, scroll_callback)
 
+  // tell GLFW to capture our mouse
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+  
   // load all OpenGL function pointers for the current context — it’s the LWJGL equivalent of gladLoadGLLoader
   GL.createCapabilities()
 

@@ -59,6 +59,9 @@ var lastFrame: Float = 0.0f
   glfwMakeContextCurrent(window)
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback)
 
+  // tell GLFW to capture our mouse
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
+  
   // load all OpenGL function pointers for the current context — it’s the LWJGL equivalent of gladLoadGLLoader
   GL.createCapabilities()
 
