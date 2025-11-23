@@ -14,10 +14,13 @@ val osClassifier = System.getProperty("os.arch") match {
 // ✅ LWJGL modules you need
 libraryDependencies ++= Seq(
   "org.lwjgl" % "lwjgl" % lwjglVersion,
+  "org.lwjgl" % "lwjgl-assimp" % lwjglVersion,
   "org.lwjgl" % "lwjgl-opengl" % lwjglVersion,
   "org.lwjgl" % "lwjgl-glfw" % lwjglVersion,
   "org.lwjgl" % "lwjgl-stb" % lwjglVersion,
   "org.lwjgl" % "lwjgl" % lwjglVersion classifier osClassifier,
+  "org.lwjgl" % "lwjgl-assimp" % lwjglVersion classifier osClassifier,
+  //"org.lwjgl" % "lwjgl-draco" % lwjglVersion classifier osClassifier,
   "org.lwjgl" % "lwjgl-opengl" % lwjglVersion classifier osClassifier,
   "org.lwjgl" % "lwjgl-glfw" % lwjglVersion classifier osClassifier,
   "org.lwjgl" % "lwjgl-stb" % lwjglVersion classifier osClassifier,

@@ -1,4 +1,4 @@
-package learnopengl_3_1
+package learnopengl_1_3_1
 
 import org.joml.Matrix4f
 import org.joml.Vector3f
