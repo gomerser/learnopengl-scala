@@ -74,7 +74,7 @@ var lastFrame: Float = 0.0f
   // -----------------------------
   glEnable(GL_DEPTH_TEST)
   glDepthFunc(
-    GL_LESS //GL_ALWAYS
+    GL_ALWAYS
   ) // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
 
   // build and compile shaders
