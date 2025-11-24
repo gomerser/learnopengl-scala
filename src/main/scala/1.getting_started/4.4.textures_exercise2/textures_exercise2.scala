@@ -1,4 +1,4 @@
-package learnopengl_4_4
+package learnopengl_1_4_4
 
 import learnopengl.shader_s.Shader
 import org.joml.Matrix4f
