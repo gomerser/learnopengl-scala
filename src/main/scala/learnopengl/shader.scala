@@ -51,20 +51,24 @@ object Shader {
       geometryPath: String = null
   ) = new Shader {
 
-    // read resource file's contents into streams
-    val vShaderStream = getClass.getResourceAsStream(s"/shaders/$vertexPath")
-    val fShaderStream = getClass.getResourceAsStream(s"/shaders/$fragmentPath")
-    val gShaderStream = getClass.getResourceAsStream(s"/shaders/$geometryPath")
+    // read resource file's contents into streams and
     // convert stream into string
+    val vShaderStream = getClass.getResourceAsStream(s"/shaders/$vertexPath")
     val vShaderCode =
       try Source.fromInputStream(vShaderStream).mkString
       finally vShaderStream.close()
+    val fShaderStream = getClass.getResourceAsStream(s"/shaders/$fragmentPath")
     val fShaderCode =
       try Source.fromInputStream(fShaderStream).mkString
       finally fShaderStream.close()
     val gShaderCode =
-      try Source.fromInputStream(gShaderStream).mkString
-      finally gShaderStream.close()
+      if (geometryPath == null) ""
+      else {
+        val gShaderStream =
+          getClass.getResourceAsStream(s"/shaders/$geometryPath")
+        try Source.fromInputStream(gShaderStream).mkString
+        finally gShaderStream.close()
+      }
 
     // vertex shader
     val vertex = glCreateShader(GL_VERTEX_SHADER)
