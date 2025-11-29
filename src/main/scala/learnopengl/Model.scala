@@ -82,7 +82,7 @@ class Model(path: String, val gammaCorrection: Boolean = false):
           Vector3f(n.x, n.y, n.z)
         else Vector3f(),
         TexCoords = if mesh.mTextureCoords(0) != null then
-          val tc = mesh.mTextureCoords(0)
+          val tc = mesh.mTextureCoords(0).get(i)
           Vector2f(tc.x, tc.y)
         else Vector2f(0f, 0f),
         Tangent = if mesh.mTangents != null then
