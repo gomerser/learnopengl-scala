@@ -1,8 +1,6 @@
 package learnopengl.shader_m
 
 import org.joml.*
-import org.joml.Matrix4f
-import org.joml.Vector3f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL

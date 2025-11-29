@@ -1,6 +1,6 @@
 package learnopengl.mesh
 
-import learnopengl.shader_m.Shader
+import learnopengl.shader.Shader
 import org.joml.Vector2f
 import org.joml.Vector3f
 import org.lwjgl.opengl.GL11.*
