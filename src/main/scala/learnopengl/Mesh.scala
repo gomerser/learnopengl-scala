@@ -32,11 +32,11 @@ case class Texture(id: Int, tpe: String, path: String)
 
 class Mesh(
     vertices: Seq[Vertex],
-    indices: Seq[Int],
+    val indices: Seq[Int],
     textures: Seq[Texture]
 ):
   // create buffers/arrays
-  private val vao: Int = glGenVertexArrays()
+  val vao = glGenVertexArrays()
   private val vbo = glGenBuffers()
   private val ebo = glGenBuffers()
 
