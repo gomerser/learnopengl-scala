@@ -3,7 +3,7 @@ version := "0.1"
 scalaVersion := "3.3.6"
 
 // ✅ LWJGL version
-val lwjglVersion = "3.3.3"
+val lwjglVersion = "3.3.6"
 
 // ✅ OS classifier for macOS (Intel or Apple Silicon)
 val osClassifier = System.getProperty("os.arch") match {
