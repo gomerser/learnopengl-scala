@@ -73,6 +73,14 @@ var lastFrame: Float = 0.0f
   // tell GLFW to capture our mouse
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
 
+  // fetch framebuffer width and height
+  val (fbWidth, fbHeight) = usingStack { stack =>
+    val xBuf = stack.mallocInt(1)
+    val yBuf = stack.mallocInt(1)
+    glfwGetFramebufferSize(window, xBuf, yBuf)
+    (xBuf.get(0), yBuf.get(0))
+  }
+
   // load all OpenGL function pointers for the current context — it’s the LWJGL equivalent of gladLoadGLLoader
   GL.createCapabilities()
 
@@ -121,8 +129,8 @@ var lastFrame: Float = 0.0f
       GL_TEXTURE_2D,
       0,
       GL_RGBA16F,
-      SCR_WIDTH,
-      SCR_HEIGHT,
+      fbWidth,
+      fbHeight,
       0,
       GL_RGBA,
       GL_FLOAT,
@@ -151,8 +159,8 @@ var lastFrame: Float = 0.0f
   glRenderbufferStorage(
     GL_RENDERBUFFER,
     GL_DEPTH_COMPONENT,
-    SCR_WIDTH,
-    SCR_HEIGHT
+    fbWidth,
+    fbHeight
   )
   glFramebufferRenderbuffer(
     GL_FRAMEBUFFER,
@@ -161,11 +169,16 @@ var lastFrame: Float = 0.0f
     rboDepth
   )
   // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
-  val attachments = Array(GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1)
-  glDrawBuffers(attachments)
+  usingStack { stack =>
+    val buffers = stack.mallocInt(2)
+    buffers.put(GL_COLOR_ATTACHMENT0)
+    buffers.put(GL_COLOR_ATTACHMENT1)
+    buffers.flip()
+    glDrawBuffers(buffers)
+  }
   // finally check if framebuffer is complete
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    println("Framebuffer not complete!")
+    throw new RuntimeException("Framebuffer not complete!")
   glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
   // ping-pong-framebuffer for blurring
@@ -181,8 +194,8 @@ var lastFrame: Float = 0.0f
       GL_TEXTURE_2D,
       0,
       GL_RGBA16F,
-      SCR_WIDTH,
-      SCR_HEIGHT,
+      fbWidth,
+      fbHeight,
       0,
       GL_RGBA,
       GL_FLOAT,
@@ -258,7 +271,7 @@ var lastFrame: Float = 0.0f
     val projection = new Matrix4f()
       .perspective(
         Math.toRadians(camera.zoom).toFloat,
-        SCR_WIDTH.toFloat / SCR_HEIGHT.toFloat,
+        fbWidth.toFloat / fbHeight.toFloat,
         0.1f,
         100.0f
       )
@@ -277,10 +290,11 @@ var lastFrame: Float = 0.0f
     // create one large cube that acts as the floor
     var model = new Matrix4f()
       .translate(Vector3f(0.0f, -1.0f, 0.0))
-      .scale(Vector3f(12.5f, 0.5f, 15.5f))
+      .scale(Vector3f(12.5f, 0.5f, 12.5f))
     shader.setMat4("model", model)
     renderCube()
     // then create multiple cubes as the scenery
+    glBindTexture(GL_TEXTURE_2D, containerTexture)
     model = new Matrix4f()
       .translate(Vector3f(0.0f, 1.5f, 0.0))
       .scale(0.5f)
