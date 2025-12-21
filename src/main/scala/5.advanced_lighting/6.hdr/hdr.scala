@@ -73,6 +73,14 @@ var lastFrame: Float = 0.0f
   // tell GLFW to capture our mouse
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED)
 
+  // fetch framebuffer width and height
+  val (fbWidth, fbHeight) = usingStack { stack =>
+    val xBuf = stack.mallocInt(1)
+    val yBuf = stack.mallocInt(1)
+    glfwGetFramebufferSize(window, xBuf, yBuf)
+    (xBuf.get(0), yBuf.get(0))
+  }
+
   // load all OpenGL function pointers for the current context — it’s the LWJGL equivalent of gladLoadGLLoader
   GL.createCapabilities()
 
@@ -106,8 +114,8 @@ var lastFrame: Float = 0.0f
     GL_TEXTURE_2D,
     0,
     GL_RGBA16F,
-    SCR_WIDTH,
-    SCR_HEIGHT,
+    fbWidth,
+    fbHeight,
     0,
     GL_RGBA,
     GL_FLOAT,
@@ -121,8 +129,8 @@ var lastFrame: Float = 0.0f
   glRenderbufferStorage(
     GL_RENDERBUFFER,
     GL_DEPTH_COMPONENT,
-    SCR_WIDTH,
-    SCR_HEIGHT
+    fbWidth,
+    fbHeight
   )
   // attach buffers
   glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO)
@@ -191,7 +199,7 @@ var lastFrame: Float = 0.0f
     val projection = new Matrix4f()
       .perspective(
         Math.toRadians(camera.zoom).toFloat,
-        SCR_WIDTH.toFloat / SCR_HEIGHT.toFloat,
+        fbWidth.toFloat / fbHeight.toFloat,
         0.1f,
         100.0f
       )
