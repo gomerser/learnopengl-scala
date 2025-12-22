@@ -1,4 +1,4 @@
-package learnopengl_6_2_1_2
+package learnopengl_6_2_2_1
 
 import learnopengl.Camera
 import learnopengl.CameraMovement.*
@@ -22,6 +22,7 @@ import org.lwjgl.opengl.GL20.*
 import org.lwjgl.opengl.GL21.*
 import org.lwjgl.opengl.GL30.*
 import org.lwjgl.opengl.GL31.*
+import org.lwjgl.opengl.GL32.*
 import org.lwjgl.opengl.GL33.*
 import org.lwjgl.stb.STBImage.*
 import org.lwjgl.system.Configuration
@@ -87,26 +88,33 @@ def ourLerp(a: Float, b: Float, f: Float) = a + f * (b - a)
   // configure global opengl state
   // -----------------------------
   glEnable(GL_DEPTH_TEST)
-  glDepthFunc(
-    GL_LEQUAL
-  ) // set depth function to less than AND equal for skybox depth trick.
+  // set depth function to less than AND equal for skybox depth trick.
+  glDepthFunc(GL_LEQUAL)
+  // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
+  glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
   // build and compile shaders
   // ------------------------------------
-  val pbrShader = Shader("6.pbr/2.1.2.pbr.vs", "6.pbr/2.1.2.pbr.fs")
+  val pbrShader = Shader("6.pbr/2.2.1.pbr.vs", "6.pbr/2.2.1.pbr.fs")
   val equirectangularToCubemapShader = Shader(
-    "6.pbr/2.1.2.cubemap.vs",
-    "6.pbr/2.1.2.equirectangular_to_cubemap.fs"
+    "6.pbr/2.2.1.cubemap.vs",
+    "6.pbr/2.2.1.equirectangular_to_cubemap.fs"
   )
   val irradianceShader = Shader(
-    "6.pbr/2.1.2.cubemap.vs",
-    "6.pbr/2.1.2.irradiance_convolution.fs"
+    "6.pbr/2.2.1.cubemap.vs",
+    "6.pbr/2.2.1.irradiance_convolution.fs"
   )
+  val prefilterShader =
+    Shader("6.pbr/2.2.1.cubemap.vs", "6.pbr/2.2.1.prefilter.fs")
+  val brdfShader =
+    Shader("6.pbr/2.2.1.brdf.vs", "6.pbr/2.2.1.brdf.fs")
   val backgroundShader =
-    Shader("6.pbr/2.1.2.background.vs", "6.pbr/2.1.2.background.fs")
+    Shader("6.pbr/2.2.1.background.vs", "6.pbr/2.2.1.background.fs")
 
   pbrShader.use()
   pbrShader.setInt("irradianceMap", 0)
+  pbrShader.setInt("prefilterMap", 1)
+  pbrShader.setInt("brdfLUT", 2)
   pbrShader.setVec3("albedo", 0.5f, 0.0f, 0.0f)
   pbrShader.setFloat("ao", 1.0f)
 
@@ -173,7 +181,12 @@ def ourLerp(a: Float, b: Float, f: Float) = a + f * (b - a)
 
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+      glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+      glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_MIN_FILTER,
+        GL_LINEAR_MIPMAP_LINEAR
+      )
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
       stbi_image_free(data)
@@ -277,6 +290,10 @@ def ourLerp(a: Float, b: Float, f: Float) = a + f * (b - a)
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
+    // then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap)
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+
     // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
     // --------------------------------------------------------------------------------
     val irradianceMap = glGenTextures()
@@ -334,6 +351,108 @@ def ourLerp(a: Float, b: Float, f: Float) = a + f * (b - a)
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
+    // pbr: create a pre-filter cubemap, and re-scale capture FBO to pre-filter scale.
+    // --------------------------------------------------------------------------------
+    val prefilterMap = glGenTextures()
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap)
+    for (i <- 0 until 6) {
+      glTexImage2D(
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+        0,
+        GL_RGB16F,
+        128,
+        128,
+        0,
+        GL_RGB,
+        GL_FLOAT,
+        0L
+      )
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+    glTexParameteri(
+      GL_TEXTURE_CUBE_MAP,
+      GL_TEXTURE_MIN_FILTER,
+      GL_LINEAR_MIPMAP_LINEAR
+    ) // be sure to set minification filter to mip_linear
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    // generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+
+    // pbr: run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
+    // ----------------------------------------------------------------------------------------------------
+    prefilterShader.use()
+    prefilterShader.setInt("environmentMap", 0)
+    prefilterShader.setMat4("projection", captureProjection)
+    glActiveTexture(GL_TEXTURE0)
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap)
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO)
+    val maxMipLevels = 5
+    for (mip <- 0 until maxMipLevels) {
+      // reisze framebuffer according to mip-level size.
+      val mipWidth = (128 * math.pow(0.5, mip)).toInt
+      val mipHeight = (128 * math.pow(0.5, mip)).toInt
+      glBindRenderbuffer(GL_RENDERBUFFER, captureRBO)
+      glRenderbufferStorage(
+        GL_RENDERBUFFER,
+        GL_DEPTH_COMPONENT24,
+        mipWidth,
+        mipHeight
+      )
+      glViewport(0, 0, mipWidth, mipHeight)
+
+      val roughness = mip.toFloat / (maxMipLevels - 1).toFloat
+      prefilterShader.setFloat("roughness", roughness)
+      for (i <- 0 until 6) {
+        prefilterShader.setMat4("view", captureViews(i))
+        glFramebufferTexture2D(
+          GL_FRAMEBUFFER,
+          GL_COLOR_ATTACHMENT0,
+          GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+          prefilterMap,
+          mip
+        )
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        renderCube()
+      }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+    // pbr: generate a 2D LUT from the BRDF equations used.
+    // ----------------------------------------------------
+    val brdfLUTTexture = glGenTextures()
+
+    // pre-allocate enough memory for the LUT texture.
+    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0)
+    // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+    // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO)
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512)
+    glFramebufferTexture2D(
+      GL_FRAMEBUFFER,
+      GL_COLOR_ATTACHMENT0,
+      GL_TEXTURE_2D,
+      brdfLUTTexture,
+      0
+    )
+
+    glViewport(0, 0, 512, 512)
+    brdfShader.use()
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    renderQuad()
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
   // initialize static shader uniforms before rendering
   // --------------------------------------------------
   val projection = new Matrix4f().perspective(
@@ -385,6 +504,10 @@ def ourLerp(a: Float, b: Float, f: Float) = a + f * (b - a)
     // bind pre-computed IBL data
     glActiveTexture(GL_TEXTURE0)
     glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap)
+    glActiveTexture(GL_TEXTURE1)
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap)
+    glActiveTexture(GL_TEXTURE2)
+    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture)
 
     // render rows*column number of spheres with varying metallic/roughness values scaled by rows and columns respectively
     for (row <- 0 until nrRows) {
@@ -433,8 +556,13 @@ def ourLerp(a: Float, b: Float, f: Float) = a + f * (b - a)
     backgroundShader.setMat4("view", view)
     glActiveTexture(GL_TEXTURE0)
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap)
-    //glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap) // display irradiance map
+    // glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap) // display irradiance map
+    // glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap) // display prefilter map
     renderCube()
+
+    // render BRDF map to screen
+    // brdfShader.Use()
+    // renderQuad()
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------
@@ -705,3 +833,39 @@ def loadResourceAsTexture(name: String): ByteBuffer =
   buffer.put(bytes)
   buffer.flip()
   buffer
+
+// renderQuad() renders a 1x1 XY quad in NDC
+// -----------------------------------------
+var quadVAO = 0
+var quadVBO = 0
+def renderQuad(): Unit =
+  if quadVAO == 0 then
+    val quadVertices = Array[Float](
+      // positions        // texture Coords
+      -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+      0.0f, 1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f
+    )
+    // setup plane VAO
+    quadVAO = glGenVertexArrays()
+    quadVBO = glGenBuffers()
+    glBindVertexArray(quadVAO)
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO)
+    val buf =
+      MemoryUtil.memAllocFloat(quadVertices.length).put(quadVertices).flip()
+    glBufferData(GL_ARRAY_BUFFER, buf, GL_STATIC_DRAW)
+    MemoryUtil.memFree(buf)
+    glEnableVertexAttribArray(0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, 5 * java.lang.Float.BYTES, 0)
+    glEnableVertexAttribArray(1)
+    glVertexAttribPointer(
+      1,
+      2,
+      GL_FLOAT,
+      false,
+      5 * java.lang.Float.BYTES,
+      3 * java.lang.Float.BYTES
+    )
+
+  glBindVertexArray(quadVAO)
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4)
+  glBindVertexArray(0)
